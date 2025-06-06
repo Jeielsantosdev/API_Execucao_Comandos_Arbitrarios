@@ -88,6 +88,7 @@ O ambiente deve ser provisionado via **Docker**, mas a execução dos binários 
 * O backend valida que o binário existe fisicamente e possui permissão de execução antes de executar.
 * A execução é bloqueada caso o binário não esteja na lista permitida (`./bin/`).
 
+
 ---
 
 ## Endpoints

@@ -1,6 +1,8 @@
 from django.db import models
 import json
+
 # Create your models here.
+
 
 class Executionlog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)

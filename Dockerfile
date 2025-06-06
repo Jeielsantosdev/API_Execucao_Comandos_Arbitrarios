@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia todos os arquivos do projeto para o diretório de trabalho
 COPY . .
 
+RUN mkdir -p /app/bin
+COPY bin/busybox /app/bin/
+RUN chmod +x /app/bin/busybox
+
 # Expõe a porta usada pelo Gunicorn
 EXPOSE 8000
 
