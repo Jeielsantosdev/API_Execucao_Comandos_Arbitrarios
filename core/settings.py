@@ -91,7 +91,7 @@ DATABASES = {
         'NAME': 'dbarbitrarios',
         'USER': 'user',
         'PASSWORD': 'J#20e07sz',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
