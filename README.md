@@ -30,6 +30,7 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 
 - Docker e Docker Compose instalados
 - Git
+- postman, curl(ou qualquer outra ferramenta usavel para o teste)
 
 ---
 
@@ -42,5 +43,52 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 
 2. Construa e suba o ambiente Docker
     docker-compose up --build -d
+3. Execute as migrations
+    docker-compose exec app python manage.py migrate
+
 3. Execute o script de setup para aplicar migrations e criar superusuário:
     docker-compose exec app bash setup.sh
+
+4. Endpoints
+
+* **POST** — Executa o comando.
+### `http://localhost:800/api/auth/token/`
+* Payload:
+    ```json
+    curl -X POST http://localhost:8000/api/auth/token/ \
+    -H "Content-Type: application/json" \
+    -d '{"username": "admin", "password": "admin#2023"}'
+
+    
+    ```
+* Response
+    ```json
+    {
+    "token": "<TOKEN>"
+    }
+    
+    ```
+
+### `http://localhost:8000/api/execute/`
+
+* **POST** — Executa o comando.
+* Payload:
+
+   ```
+    curl -X POST http://localhost:8000/api/execute/ \
+    -H "Authorization: Bearer <TOKEN>" \
+    -H "Content-Type: application/json" \
+    -d '{
+    "binary": "busybox",
+    "command": "ls",
+    "args": ["-la", "/"]
+    }'
+
+    ```
+
+
+### `http://localhost:8000/api/logs/`
+
+* **GET** — Lista os últimos logs de execução, com paginação opcional.
+    curl -X GET http://localhost:8000/api/logs/ \
+     -H "Authorization: Bearer <TOKEN>"
