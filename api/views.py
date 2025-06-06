@@ -1,0 +1,103 @@
+import os
+import subprocess
+from ninja import Router
+from ninja.security import HttpBearer
+from django.contrib.auth import authenticate
+import jwt
+from datetime import datetime, timedelta
+from django.conf import settings
+from .schemas import *
+from .models import *
+
+router = Router()
+
+# JWT Authentication 
+class AuthBearer(HttpBearer):
+    def authenticate(self, request, token):
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            return payload
+        except jwt.InvalidTokenError:
+            return None
+
+@router.post("/auth/token/")
+def get_token(request, data:AuthSchema):
+
+    user = authenticate(request, username=data.username, password=data.password)
+    if user is not None:
+        payload = {
+            'user_id': user.id,
+            'exp': datetime.utcnow() + timedelta(hours=24)
+        }
+        token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
+        return {"token": token}
+    else:
+        return {"error": "Invalid credentials"}, 401
+    
+@router.post("/execute/", response=ExecuteOutput, auth=AuthBearer())
+def execute_command(request, data: ExecuteInput):
+    #validação de segurança
+    bin_path = os.path.join("./bin",data.binary)
+    if not os.path.isfile(bin_path) or not os.access(bin_path, os.X_OK):
+        raise Exception("Binary not found or not executable")
+    
+    #Prevenir path traversal
+    if ".." in data.command or "/" in data.binary:
+        raise Exception("Invalid  binary path")
+    
+    # montar o comando
+    cmd = [bin_path, data.command] + data.args
+    try:
+        #executar comando
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        #Preservar caracteres de escape
+        stdout = result.stdout.encode('unicode_escape').decode('utf-8')
+        stderr = result.stderr.encode('unicode_escape').decode('utf-8')
+
+        #Cria log
+        log_entry = Executionlog.objects.create(
+            binary=data.binary,
+            command=data.command,
+            args=data.args,
+            stdout=stdout,
+            stderr=stderr,
+            status_code=result.returncode
+        )
+
+        #formatar o log para a resposta
+        log_str = (
+            f"{log_entry.timestamp.isoformat()} | "
+            f"./bin/{log_entry.binary} {log_entry.command} {' '.join(log_entry.args)} | "
+            f"STDOUT: {stdout} | STDERR: {stderr}"
+        )
+
+        return {
+            "status_code": result.returncode,
+            "stdout": stdout,
+            "stderr": stderr,
+            "log": log_str
+        }
+    except subprocess.CalledProcessError as e:
+        raise Exception(f" execution failed: {e.stderr}") from e
+    
+@router.get("/logs/", response=List[LogOutput])
+def get_logs(request, limit: int = 10, offset: int = 0):
+    queryset = Executionlog.objects.all().order_by('-timestamp')[offset:offset + limit]
+    logs = []
+    for log in queryset:
+        logs.append(LogOutput(
+            id=log.id,
+            timestamp=log.timestamp,
+            binary=log.binary,
+            command=log.command,
+            args=log.args,
+            stdout=log.stdout,
+            stderr=log.stderr,
+            status_code=log.status_code,
+        ))
+    return logs
