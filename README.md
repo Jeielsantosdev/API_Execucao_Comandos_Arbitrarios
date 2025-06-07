@@ -42,11 +42,14 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
    cd API_Execucao_Comandos_Arbitrarios
 
 2. Construa e suba o ambiente Docker
+    ```bash
     docker-compose up --build -d
 3. Execute as migrations
+    ```bash
     docker-compose exec app python manage.py migrate
 
 3. Execute o script de setup para aplicar migrations e criar superusuário:
+    ```bash
     docker-compose exec app bash setup.sh
 
 4. Endpoints
