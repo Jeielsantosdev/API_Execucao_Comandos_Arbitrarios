@@ -11,6 +11,8 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     environment:
     - DJANGO_SUPERUSER_PASSWORD=admin123
+  env_file:
+      - .env
   db:
     image: postgres:16
     environment:
