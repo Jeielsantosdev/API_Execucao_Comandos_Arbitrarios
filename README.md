@@ -57,7 +57,7 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 * **POST** — Executa o comando.
 ### `http://localhost:800/api/auth/token/`
 * Payload:
-    ```json
+    ```bash
     curl -X POST http://localhost:8000/api/auth/token/ \
     -H "Content-Type: application/json" \
     -d '{"username": "admin", "password": "admin#2023"}'
@@ -77,7 +77,7 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 * **POST** — Executa o comando.
 * Payload:
 
-   ```
+   ```bash
     curl -X POST http://localhost:8000/api/execute/ \
     -H "Authorization: Bearer <TOKEN>" \
     -H "Content-Type: application/json" \
@@ -93,5 +93,6 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 ### `http://localhost:8000/api/logs/`
 
 * **GET** — Lista os últimos logs de execução, com paginação opcional.
+    ```bash
     curl -X GET http://localhost:8000/api/logs/ \
      -H "Authorization: Bearer <TOKEN>"
