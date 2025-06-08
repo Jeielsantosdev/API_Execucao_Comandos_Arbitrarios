@@ -48,11 +48,11 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
     ```bash
     docker-compose exec app python manage.py migrate
 
-3. Execute o script de setup para aplicar migrations e criar superusuário:
+4. Execute o script de setup para aplicar migrations e criar superusuário:
     ```bash
     docker-compose exec app bash setup.sh
 
-4. Endpoints
+5. Endpoints
 
 * **POST** — Executa o comando.
 ### `http://localhost:800/api/auth/token/`
