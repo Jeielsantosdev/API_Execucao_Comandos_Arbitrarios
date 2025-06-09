@@ -3,7 +3,6 @@ import subprocess
 from ninja import Router
 from ninja.security import HttpBearer
 from django.contrib.auth import authenticate
-from ninja.responses import Response
 from ninja.errors import HttpError
 import jwt
 from datetime import datetime, timedelta
