@@ -4,11 +4,15 @@ from ninja import Router
 from ninja.security import HttpBearer
 from django.contrib.auth import authenticate
 from ninja.errors import HttpError
+from ninja.responses import Response
+from ninja import Query
+from ninja.pagination import paginate
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
 from .schemas import *
 from .models import *
+from .pagination import SafePagination
 
 router = Router()
 
@@ -38,7 +42,9 @@ def get_token(request, data: AuthSchema):
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
         return {'token': token}
     else:
-        return {'error': 'Invalid credentials'}, 401
+        return Response(
+            {'detail': 'Invalid credentials'}, status=401
+        )
 
 
 @router.post('/execute/', response=ExecuteOutput, auth=AuthBearer())
@@ -46,11 +52,11 @@ def execute_command(request, data: ExecuteInput):
     # validação de segurança
     bin_path = os.path.join('./bin', data.binary)
     if not os.path.isfile(bin_path) or not os.access(bin_path, os.X_OK):
-        raise Exception('Binary not found or not executable')
+        return Response({"erro":"Binary not found or not executable"}, status=404)
 
     # Prevenir path traversal
     if '..' in data.command or '/' in data.binary:
-        raise Exception('Invalid  binary path')
+        return Response({"erro":"Invalid  binary path"}, status=400)
 
     # montar o comando
     cmd = [bin_path, data.command] + data.args
@@ -91,27 +97,10 @@ def execute_command(request, data: ExecuteInput):
         raise HttpError(400, f'Execução falhou: {stderr}')
     except Exception as e:
         raise HttpError(500, "Arquivo '.bin/busybox' não encontrado")
-    except Exception as e:
-        raise HttpError(500, f'Erro inesperado: {str(e)}')
 
 
-@router.get('/logs/', response=List[LogOutput])
-def get_logs(request, limit: int = 10, offset: int = 0):
-    queryset = Executionlog.objects.all().order_by('-timestamp')[
-        offset : offset + limit
-    ]
-    logs = []
-    for log in queryset:
-        logs.append(
-            LogOutput(
-                id=log.id,
-                timestamp=log.timestamp,
-                binary=log.binary,
-                command=log.command,
-                args=log.args,
-                stdout=log.stdout,
-                stderr=log.stderr,
-                status_code=log.status_code,
-            )
-        )
-    return logs
+
+@router.get('/logs/', response=List[LogOutput], auth=AuthBearer())
+@paginate(SafePagination)
+def get_logs(request):
+    return Executionlog.objects.all().order_by('-timestamp')

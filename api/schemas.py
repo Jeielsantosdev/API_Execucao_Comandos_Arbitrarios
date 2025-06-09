@@ -47,6 +47,10 @@ class LogOutput(BaseModel):
     stderr: str
     status_code: int
 
-    model_config = {
-        'arbitrary_types_allowed': True,
-    }
+    class Config:
+        from_attributes = True
+        orm_mode = True
+        arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat(),
+        }

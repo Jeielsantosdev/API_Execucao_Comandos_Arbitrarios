@@ -50,8 +50,7 @@ API REST segura para executar binários locais arbitrários dentro da pasta `./b
 
 4. Execute o script de setup para aplicar migrations e criar superusuário:
     ```bash
-    docker-compose exec app bash setup.sh
-
+    docker-compose exec app python manage.py criar_superuser
 5. Endpoints
 
 * **POST** — Executa o comando.
