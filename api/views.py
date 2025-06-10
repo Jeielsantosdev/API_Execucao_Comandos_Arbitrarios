@@ -5,7 +5,6 @@ from ninja.security import HttpBearer
 from django.contrib.auth import authenticate
 from ninja.errors import HttpError
 from ninja.responses import Response
-from ninja import Query
 from ninja.pagination import paginate
 import jwt
 from datetime import datetime, timedelta
