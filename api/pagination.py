@@ -1,22 +1,37 @@
-from ninja.pagination import LimitOffsetPagination
-from ninja.errors import HttpError
+from ninja.pagination import LimitOffsetPagination, PaginationBase
+from ninja import Schema
+from typing import List, Any
 
 class SafePagination(LimitOffsetPagination):
-    max_limit = 1000 
-    max_offset = 10000 
-    def paginate_queryset(self, queryset, request, view=None, **kwargs):
-        limit = self.get_limit(request)
-        offset = self.get_offset(request)
+    """
+    Custom pagination class that extends LimitOffsetPagination
+    to ensure safe pagination behavior with a maximum limit.
+    """
+    max_limit = 1000
 
-        if limit is not None:
-            if limit <= 0:
-                raise HttpError(400, "max_limit must be greater than 0")
-            if limit > self.max_limit:
-                limit = self.max_limit
-        if offset is not None:
-            if offset < 0:
-                raise HttpError(400, "offset must be greater than or equal to 0")
-            if offset > self.max_offset:
-                raise HttpError(400, "offset must be less than or equal to max_offset")
-        return super().paginate_queryset(queryset, request, view, **kwargs)
-               
+    class Input(Schema):
+        limit: int = None
+        offset: int = 0
+
+    class Output(Schema):
+        items: List[Any]
+        total: int
+        per_page: int
+
+    def paginate_queryset(self, queryset, pagination: Input, **params):
+        limit = pagination.limit if pagination.limit is not None else self.max_limit
+        offset = pagination.offset
+
+        # Ensure limit does not exceed max_limit
+        if limit is not None and limit > self.max_limit:
+            limit = self.max_limit
+
+        # Calculate the slice of the queryset
+        total = queryset.count()
+        items = queryset[offset:offset + limit]
+
+        return {
+            'items': items,
+            'total': total,
+            'per_page': limit,
+        }
