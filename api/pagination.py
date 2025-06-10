@@ -7,7 +7,7 @@ class SafePagination(LimitOffsetPagination):
     Custom pagination class that extends LimitOffsetPagination
     to ensure safe pagination behavior with a maximum limit.
     """
-    max_limit = 1000
+    max_limit = 100
 
     class Input(Schema):
         limit: int = None
