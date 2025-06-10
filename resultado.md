@@ -1,5 +1,5 @@
 ## Hardcoded de usuários e senhas
-
+### A questão do .env julguei não nescessario algumas coisas, mais julguei mal, e peço desculpas
 ### docker-compose.yml
 
 As credenciais do banco estão **hardcoded** no `docker-compose.yml`, o que viola boas práticas de segurança. Isso facilita o vazamento de credenciais em repositórios públicos ou logs.
